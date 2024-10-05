@@ -14,29 +14,32 @@ class Program
         var currentState = new State(ba,4);
         List<State> thisLevelStates = new List<State>(){currentState};
         List<State> nextLevelStates = new List<State>(){};
-        for(int level = 4; level < 40+1; level++){
+        for(int level = 4; level < 56+1; level++){
             Console.WriteLine("Level {0} - count {1}",level,thisLevelStates.Count);
             bool currentBit = AbbaGenerator(level);
-            List<string> levelResults = new List<string>();
+            List<BitArray> levelResults = new ();
 
             foreach(var s in thisLevelStates)
                 nextLevelStates.AddRange(processState(s,currentBit,levelResults));
             if(levelResults.Count > 0){
-                foreach(var g in levelResults.GroupBy(r => r).OrderBy(g => g.Count())){
-                    Console.WriteLine("{0} * {1}",g.Count(), g.Key);
-                }
+                Console.WriteLine("Result# {0}",levelResults.Count);
+                // foreach(var g in levelResults.GroupBy(r => r).OrderBy(g => g.Count())){
+                //     Console.WriteLine("{0} * {1}={2}",g.Count(), g.Key.ToHexString(), g.Key.ToBitString());
+                //}
             }
-            thisLevelStates = nextLevelStates;
+            //deduplicate
+            thisLevelStates =  nextLevelStates.GroupBy(s1 => s1.Pattern.ToBitString()).Select(g => g.First()).ToList();
+;
             nextLevelStates = new List<State>();
 
         }
         
     }
 
-    private static IEnumerable<State> processState(State s, bool currentBit, List<string> levelResults)
+    private static IEnumerable<State> processState(State s, bool currentBit, List<BitArray> levelResults)
     {
         if(s.Delta == 0){
-            levelResults.Add(s.Pattern.ToBitString());
+            levelResults.Add(s.Pattern);
             yield break;
         }
         bool backBit = s.Pattern[s.Pattern.Length - s.Delta];
